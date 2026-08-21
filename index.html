@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assimetria e Curtose na Análise de Dados | Estudo Dirigido</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN for extra graphics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-hover: rgba(51, 65, 85, 0.8);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-pink: #f472b6;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-red: #f87171;
+            --mean-color: #ef4444;
+            --median-color: #3b82f6;
+            --mode-color: #10b981;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .logo-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-blue);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-md {
+            background: linear-gradient(135deg, rgba(192, 132, 252, 0.2), rgba(244, 114, 182, 0.2));
+            color: var(--accent-purple);
+            border-color: rgba(192, 132, 252, 0.4);
+        }
+        .btn-md:hover {
+            background: linear-gradient(135deg, rgba(192, 132, 252, 0.4), rgba(244, 114, 182, 0.4));
+            color: #fff;
+        }
+
+        main {
+            max-width: 1280px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent-blue);
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .hero h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 780px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .section-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .section-block:hover {
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .block-tag {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .block-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            color: var(--text-primary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .card h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .badge-positive { color: var(--accent-green); background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); }
+        .badge-negative { color: var(--accent-red); background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); }
+        .badge-neutral { color: var(--accent-blue); background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-purple { color: var(--accent-purple); background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.3); }
+
+        .stat-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Canvas Interactive Wrapper */
+        .interactive-playground {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: #090d16;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .legend-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        .bg-mean { background-color: var(--mean-color); }
+        .bg-median { background-color: var(--median-color); }
+        .bg-mode { background-color: var(--mode-color); }
+
+        table.comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        table.comparison-table th, table.comparison-table td {
+            padding: 0.9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table.comparison-table th {
+            background: rgba(30, 41, 59, 0.8);
+            color: var(--accent-blue);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        table.comparison-table tr:hover td {
+            background: rgba(51, 65, 85, 0.3);
+        }
+
+        .formula-box {
+            font-family: 'Fira Code', monospace;
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            color: var(--accent-yellow);
+            font-size: 0.9rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+        }
+
+        /* Modal Markdown */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 1.2rem 1.8rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .modal-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-purple);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            background: #090d16;
+            flex: 1;
+        }
+
+        .btn-copy {
+            background: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-copy:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #fff; }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 2rem; }
+            .header-container { flex-direction: column; align-items: flex-start; }
+            nav { width: 100%; overflow-x: auto; padding-bottom: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon">∑</div>
+                <div class="logo-title">
+                    <h1>Assimetria & Curtose</h1>
+                    <p>Estudo Dirigido de Análise Estatística</p>
+                </div>
+            </div>
+            <nav>
+                <a href="#bloco1" class="nav-btn">B1: Conceito</a>
+                <a href="#bloco2" class="nav-btn">B2: Interpretação</a>
+                <a href="#bloco3" class="nav-btn">B3: Decisões</a>
+                <a href="#bloco4" class="nav-btn">B4: Mercado</a>
+                <a href="#bloco5" class="nav-btn">B5: Média/Mediana/Moda</a>
+                <a href="#bloco6" class="nav-btn">B6: Divergência LLMs</a>
+                <a href="#playground" class="nav-btn active">📊 Simulador</a>
+                <button class="nav-btn btn-md" onclick="openMarkdownModal()">📄 Ver Markdown (.md)</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-badge">✨ Atividade Acadêmica Completa - 6 Blocos</div>
+            <h2>Forma das Distribuições Estatísticas</h2>
+            <p>Compreendendo o impacto da Assimetria (<i>Skewness</i>) e da Curtose (<i>Kurtosis</i>) no comportamento de dados reais, tomada de decisões estratégicas e limitações da média.</p>
+        </section>
+
+        <!-- INTERACTIVE PLAYGROUND (SLIDERS + CANVAS GRAPHIC) -->
+        <section id="playground" class="section-block" style="border-color: rgba(56, 189, 248, 0.4);">
+            <div class="block-header">
+                <span class="block-tag" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));">INTERATIVO</span>
+                <h3>Simulador Dinâmico de Distribuição</h3>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Ajuste os seletores abaixo para visualizar em tempo real a deformação da curva de densidade e o deslocamento relativo da <b>Moda (Verde)</b>, <b>Mediana (Azul)</b> e <b>Média (Vermelho)</b>.
+            </p>
+
+            <div class="interactive-playground">
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label for="skewRange">
+                            <span>Assimetria (Skewness - γ₁):</span>
+                            <span id="skewVal" style="color: var(--accent-blue); font-family: 'Fira Code', monospace;">0.00 (Simétrica)</span>
+                        </label>
+                        <input type="range" id="skewRange" min="-1.5" max="1.5" step="0.05" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="kurtRange">
+                            <span>Excesso de Curtose (Kurtosis - K):</span>
+                            <span id="kurtVal" style="color: var(--accent-purple); font-family: 'Fira Code', monospace;">0.00 (Mesocúrtica)</span>
+                        </label>
+                        <input type="range" id="kurtRange" min="-1.0" max="3.0" step="0.1" value="0">
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="distCanvas"></canvas>
+                </div>
+
+                <div class="legend-bar">
+                    <div class="legend-item">
+                        <div class="legend-color bg-mode"></div>
+                        <span>Moda (Pico mais alto): <span id="modeVal" style="color: var(--accent-green);">0.00</span></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color bg-median"></div>
+                        <span>Mediana (P-50 / 50% dos dados): <span id="medianVal" style="color: var(--accent-blue);">0.00</span></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color bg-mean"></div>
+                        <span>Média (Centro de Gravidade): <span id="meanVal" style="color: var(--accent-red);">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 1 -->
+        <section id="bloco1" class="section-block">
+            <div class="block-header">
+                <span class="block-tag">BLOCO 1</span>
+                <h3>O que é Assimetria e Curtose</h3>
+            </div>
+            <div class="grid-3">
+                <div class="card">
+                    <span class="stat-badge badge-neutral">CONCEITO 1</span>
+                    <h4>Assimetria (Skewness)</h4>
+                    <p>Com minhas próprias palavras: a assimetria é a medida que indica o quanto a curva de um conjunto de dados "pende" ou se estica para um dos lados em relação ao centro.</p>
+                    <p>Ela mostra se os valores raros (extremos) estão puxando a cauda para a direita (valores altos) ou para a esquerda (valores baixos).</p>
+                </div>
+                <div class="card">
+                    <span class="stat-badge badge-purple">CONCEITO 2</span>
+                    <h4>Curtose (Kurtosis)</h4>
+                    <p>Com minhas próprias palavras: a curtose quantifica o "afunilamento do pico" e, principalmente, a "espessura das caudas" da distribuição em comparação com a curva Normal.</p>
+                    <p>Ela mede se os eventos raros e distantes da média (outliers) acontecem com mais frequência ou com menos frequência do que o modelo tradicional prevê.</p>
+                </div>
+                <div class="card">
+                    <span class="stat-badge badge-positive">UTILIDADE</span>
+                    <h4>Para que servem juntas</h4>
+                    <p>Média e Desvio Padrão sozinhos <b>não revelam a forma da incerteza</b>. Dois conjuntos de dados podem ter exatamente a mesma Média (ex: 10) e Desvio Padrão (ex: 2), mas formatos opostos.</p>
+                    <p>Assimetria e curtose funcionam como um <i>raio-X da distribuição</i>, prevenindo diagnósticos enganosos em análises estatísticas.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 2 -->
+        <section id="bloco2" class="section-block">
+            <div class="block-header">
+                <span class="block-tag">BLOCO 2</span>
+                <h3>Como se Interpreta</h3>
+            </div>
+
+            <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">Interpretação da Assimetria</h4>
+            <div class="grid-2" style="margin-bottom: 2rem;">
+                <div class="card" style="border-left: 4px solid var(--accent-green);">
+                    <span class="stat-badge badge-positive">Skewness > 0</span>
+                    <h4>Assimetria Positiva (à direita)</h4>
+                    <p><b>Cauda:</b> A cauda longa estende-se em direção aos valores mais elevados (à direita).</p>
+                    <p><b>Concentração:</b> A imensa maioria dos dados está agrupada nos valores baixos (à esquerda), com raros valores gigantescos esticando a cauda.</p>
+                    <p><i>Exemplo clássico:</i> Renda salarial populacional.</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--accent-red);">
+                    <span class="stat-badge badge-negative">Skewness < 0</span>
+                    <h4>Assimetria Negativa (à esquerda)</h4>
+                    <p><b>Cauda:</b> A cauda longa estende-se em direção aos valores mais baixos (à esquerda).</p>
+                    <p><b>Concentração:</b> A maior parte das observações está acumulada nos valores altos (à direita), com poucos valores extremamente baixos puxando a cauda.</p>
+                    <p><i>Exemplo clássico:</i> Idade de aposentadoria ou expectativa de vida.</p>
+                </div>
+            </div>
+
+            <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">Os Três Tipos de Curtose</h4>
+            <div class="grid-3">
+                <div class="card">
+                    <span class="stat-badge badge-purple">Excesso K > 0 (K > 3)</span>
+                    <h4>Leptocúrtica</h4>
+                    <p><b>Pico:</b> Muito alto e pontiagudo.</p>
+                    <p><b>Caudas:</b> Pesadas (<i>fat tails</i>).</p>
+                    <p><b>Significado:</b> Alta concentração no centro, mas com elevada probabilidade de ocorrência de eventos extremos (outliers catastróficos).</p>
+                </div>
+                <div class="card">
+                    <span class="stat-badge badge-neutral">Excesso K = 0 (K = 3)</span>
+                    <h4>Mesocúrtica</h4>
+                    <p><b>Pico:</b> Moderado e equilibrado.</p>
+                    <p><b>Caudas:</b> Padrão de referência.</p>
+                    <p><b>Significado:</b> Corresponde à Distribuição Normal perfeita (Curva de Gauss). É o referencial teórico padrão.</p>
+                </div>
+                <div class="card">
+                    <span class="stat-badge badge-positive">Excesso K < 0 (K < 3)</span>
+                    <h4>Platicúrtica</h4>
+                    <p><b>Pico:</b> Achatado e disperso.</p>
+                    <p><b>Caudas:</b> Leves e curtas.</p>
+                    <p><b>Significado:</b> Os dados distribuem-se de maneira uniforme ao redor do centro. Eventos extremos são extremamente raros.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 3 -->
+        <section id="bloco3" class="section-block">
+            <div class="block-header">
+                <span class="block-tag">BLOCO 3</span>
+                <h3>Para que Serve na Tomada de Decisões</h3>
+            </div>
+            <div class="grid-3">
+                <div class="card">
+                    <h4>1. Troca de Métricas Centrais (KPIs)</h4>
+                    <p>Quando a distribuição é assimétrica, a Média é iludida por outliers. O gestor decide trocar a Média pela <b>Mediana (P-50)</b> ou por percentis de cauda (P-95/P-99), garantindo indicadores que retratem a real experiência do cliente.</p>
+                </div>
+                <div class="card">
+                    <h4>2. Seleção de Modelos Estatísticos</h4>
+                    <p>Testes de hipóteses paramétricos (como Teste t e ANOVA) pressupõem resíduos normais. Se a curtose for leptocúrtica ou a assimetria for alta, os testes falham. A equipe deve optar por <b>transformações de dados (Log/Box-Cox)</b> ou <b>testes não-paramétricos</b>.</p>
+                </div>
+                <div class="card">
+                    <h4>3. Gestão de Risco e Capital</h4>
+                    <p>Em mercados financeiros e atuariais de seguros, assumir que sinistros ou quedas seguem uma curva Normal (mesocúrtica) resulta em **falência**. A curtose leptocúrtica exige a constituição de fundos de reserva reforçados para eventos extraordinários.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 4 -->
+        <section id="bloco4" class="section-block">
+            <div class="block-header">
+                <span class="block-tag">BLOCO 4</span>
+                <h3>Onde Aparece no Mercado (2 Exemplos Reais)</h3>
+            </div>
+            <div class="grid-2">
+                <div class="card" style="border: 1px solid rgba(192, 132, 252, 0.3);">
+                    <span class="stat-badge badge-purple">EXEMPLO 1: REMUNERAÇÃO</span>
+                    <h4>Renda Populacional & Salários</h4>
+                    <p><b>Comportamento:</b> Fortemente assimetricamente positiva. A maioria dos trabalhadores ganha de 1 a 3 salários mínimos, enquanto um grupo ínfimo ganha milhões.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 8px; font-size: 0.88rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-red);">Por que olhar só a média falha:</strong><br>
+                        Se a média salarial nacional for <b>R$ 6.500</b>, um varejista pode precificar produtos para uma classe média abastada que não existe, pois a <b>Mediana real é R$ 2.200</b> (50% ganham até esse valor). A média é inflacionada pela elite milionária.
+                    </div>
+                </div>
+
+                <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <span class="stat-badge badge-neutral">EXEMPLO 2: FINANÇAS & RISCO</span>
+                    <h4>Retornos de Ações & Sinistros de Seguros</h4>
+                    <p><b>Comportamento:</b> Distribuição Leptocúrtica (Caudas Pesadas). Dias normais são tranquilos, mas oscilações extremas ocorrem muito mais do que a teoria Normal prevê.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 8px; font-size: 0.88rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-red);">Por que olhar só a média falha:</strong><br>
+                        A média de retorno diário de um fundo pode ser <b>+0,05%</b>. Sob a curva Normal, um <i>crash</i> de -6% ocorreria 1 vez a cada 14.000 anos. Com caudas pesadas reais, isso ocorre a cada poucos anos (ex: crise de 2008, 2020), levando fundos despreparados à ruína.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 5 -->
+        <section id="bloco5" class="section-block">
+            <div class="block-header">
+                <span class="block-tag">BLOCO 5</span>
+                <h3>A Ligação com Média, Mediana e Moda</h3>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                A posição relativa entre as três medidas fundamentais de tendência central altera-se de acordo com o formato da assimetria:
+            </p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Formato da Distribuição</th>
+                        <th>Relação das Medidas</th>
+                        <th>Comportamento Físico / Estatístico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b style="color: var(--accent-green);">Assimetria Positiva (à direita)</b></td>
+                        <td><code class="formula-box" style="display:inline-block; margin:0;">Moda &lt; Mediana &lt; Média</code></td>
+                        <td>A Média é fortemente sensível a <i>outliers</i> e é "esticada" para a direita pela cauda longa.</td>
+                    </tr>
+                    <tr>
+                        <td><b style="color: var(--accent-blue);">Simétrica (Normal)</b></td>
+                        <td><code class="formula-box" style="display:inline-block; margin:0;">Média = Mediana = Moda</code></td>
+                        <td>As três medidas coincidem exatamente no centro exato da curva em forma de sino.</td>
+                    </tr>
+                    <tr>
+                        <td><b style="color: var(--accent-red);">Assimetria Negativa (à esquerda)</b></td>
+                        <td><code class="formula-box" style="display:inline-block; margin:0;">Média &lt; Mediana &lt; Moda</code></td>
+                        <td>A Média é arrastada para a esquerda pelos valores extremamente baixos da cauda esquerda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- BLOCO 6 -->
+        <section id="bloco6" class="section-block">
+            <div class="block-header">
+                <span class="block-tag" style="background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));">BLOCO 6</span>
+                <h3>Onde os dois LLMs Divergiram</h3>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Conduzimos uma pesquisa formal consultando duas IAs avançadas (<b>ChatGPT - OpenAI GPT-4o</b> e <b>Claude 3.5 Sonnet - Anthropic</b>) para analisar as suas convergências e divergências conceituais.
+            </p>
+
+            <div class="grid-2" style="margin-bottom: 2rem;">
+                <div class="card">
+                    <h4>🤖 ChatGPT (OpenAI GPT-4o)</h4>
+                    <p><b>Definição de Curtose:</b> Afirmou categoricamente que a curtose da distribuição Normal é <code>0</code>, adotando por padrão direto a convenção de Excesso de Curtose sem fazer a distinção prévia da Curtose de Pearson.</p>
+                    <p><b>Regra da Ordem:</b> Apresentou a regra <code>Moda &lt; Mediana &lt; Média</code> como uma regra matemática infalível e universal para qualquer assimetria positiva.</p>
+                </div>
+                <div class="card">
+                    <h4>🧠 Claude 3.5 Sonnet (Anthropic)</h4>
+                    <p><b>Definição de Curtose:</b> Esclareceu formalmente a dualidade entre a <b>Curtose Absoluta de Pearson</b> (<code>K = 3</code> para a Normal) e o <b>Excesso de Curtose de Fisher</b> (<code>K - 3 = 0</code>), alertando sobre diferenças de bibliotecas (R vs Python).</p>
+                    <p><b>Regra da Ordem:</b> Destacou a ressalva acadêmica de que a regra <code>Moda &lt; Mediana &lt; Média</code> (Regra de Pearson) pode ser violada em distribuições bimodais, discretas ou com caudas pesadas assimétricas.</p>
+                </div>
+            </div>
+
+            <div class="card" style="background: rgba(30, 41, 59, 0.9); border: 1px solid var(--accent-purple);">
+                <h4 style="color: var(--accent-purple);">📚 Fontes Adicionais Consultadas</h4>
+                <ul style="padding-left: 1.2rem; color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                    <li><b>BUSSAB, Wilton de O.; MORETTIN, Pedro A.</b> <i>Estatística Básica</i>. 9. ed. São Paulo: Saraiva, 2017. (Capítulo 3: Medidas de Forma).</li>
+                    <li><b>SciPy v1.11 Documentation:</b> <code>scipy.stats.kurtosis</code> (Confirma o uso do parâmetro <code>fisher=True</code> por padrão).</li>
+                    <li><b>VON HIPPEL, Paul T.</b> <i>Mean, Median, and Mode in Skewed Distributions</i>. Journal of Statistics Education, 2005. (Demonstração empírica das exceções da regra de Pearson).</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Desenvolvido para a disciplina de Análise Estatística de Dados • Entregável em formato HTML & Markdown</p>
+    </footer>
+
+    <!-- MARKDOWN MODAL -->
+    <div class="modal-backdrop" id="mdModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 Código-Fonte em Markdown (trabalho.md)</h3>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button class="btn-copy" onclick="copyMarkdownText()">📋 Copiar Texto</button>
+                    <button class="close-btn" onclick="closeMarkdownModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="mdContentBody">Carregando conteúdo Markdown...</div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR CANVAS RENDERING & INTERACTIVITY -->
+    <script>
+        const skewRange = document.getElementById('skewRange');
+        const kurtRange = document.getElementById('kurtRange');
+        const skewVal = document.getElementById('skewVal');
+        const kurtVal = document.getElementById('kurtVal');
+        const canvas = document.getElementById('distCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const modeVal = document.getElementById('modeVal');
+        const medianVal = document.getElementById('medianVal');
+        const meanVal = document.getElementById('meanVal');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawDistribution();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Skewed normal approximation using Fleishman/Power transform logic or Azzalini skew-normal
+        function skewNormalDensity(x, alpha, kurt) {
+            // Standard normal pdf
+            const phi = (z) => Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+            // Standard normal cdf approximation
+            const Phi = (z) => 0.5 * (1 + Math.erf(z / Math.SQRT2));
+
+            // Adjust width based on kurtosis
+            const scale = 1.0 + kurt * 0.2;
+            const z = x / scale;
+            
+            // Azzalini skew-normal PDF: 2 * phi(z) * Phi(alpha * z)
+            let pdf = (2 / scale) * phi(z) * Phi(alpha * z);
+
+            // Add kurtosis peak/tail modification
+            if (kurt !== 0) {
+                pdf *= (1 + 0.15 * kurt * (Math.pow(z, 4) - 3 * z * z));
+            }
+
+            return Math.max(0, pdf);
+        }
+
+        // Polyfill for erf if needed
+        if (!Math.erf) {
+            Math.erf = function(x) {
+                const sign = (x >= 0) ? 1 : -1;
+                x = Math.abs(x);
+                const a1 =  0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+                const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+                const t = 1.0 / (1.0 + p * x);
+                const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+                return sign * y;
+            };
+        }
+
+        function drawDistribution() {
+            const skew = parseFloat(skewRange.value);
+            const kurt = parseFloat(kurtRange.value);
+
+            // Update text displays
+            let skewText = skew.toFixed(2);
+            if (skew > 0) skewText += ' (Positiva →)';
+            else if (skew < 0) skewText += ' (← Negativa)';
+            else skewText += ' (Simétrica)';
+            skewVal.innerText = skewText;
+
+            let kurtText = kurt.toFixed(2);
+            if (kurt > 0) kurtText += ' (Leptocúrtica)';
+            else if (kurt < 0) kurtText += ' (Platicúrtica)';
+            else kurtText += ' (Mesocúrtica)';
+            kurtVal.innerText = kurtText;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 50;
+
+            // Coordinate mapping
+            const xMin = -4;
+            const xMax = 4;
+            const mapX = (x) => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+            
+            // Generate points
+            const numPoints = 300;
+            const points = [];
+            let maxPdf = 0;
+
+            // Alpha factor for Azzalini
+            const alpha = skew * 3.0;
+
+            for (let i = 0; i <= numPoints; i++) {
+                const x = xMin + (i / numPoints) * (xMax - xMin);
+                const y = skewNormalDensity(x, alpha, kurt);
+                points.push({ x, y });
+                if (y > maxPdf) maxPdf = y;
+            }
+
+            const mapY = (y) => height - padding - (y / (maxPdf * 1.15)) * (height - 2 * padding);
+
+            // Draw grid / axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Calculate Mode, Median, Mean approximations
+            // Mode: x at max y
+            let modeX = points.reduce((max, p) => p.y > max.y ? p : max, points[0]).x;
+
+            // Mean approximation for Azzalini: delta = alpha / sqrt(1 + alpha^2), mean = delta * sqrt(2/pi)
+            const delta = alpha / Math.sqrt(1 + alpha * alpha);
+            let meanX = delta * Math.sqrt(2 / Math.PI);
+
+            // Median approximation: roughly between mode and mean
+            let medianX = 0.67 * meanX + 0.33 * modeX;
+
+            if (skew === 0) {
+                modeX = 0;
+                medianX = 0;
+                meanX = 0;
+            }
+
+            modeVal.innerText = modeX.toFixed(2);
+            medianVal.innerText = medianX.toFixed(2);
+            meanVal.innerText = meanX.toFixed(2);
+
+            // Draw Area under curve
+            ctx.beginPath();
+            ctx.moveTo(mapX(points[0].x), mapY(0));
+            points.forEach(p => ctx.lineTo(mapX(p.x), mapY(p.y)));
+            ctx.lineTo(mapX(points[points.length - 1].x), mapY(0));
+            ctx.closePath();
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+            gradient.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // Draw Curve Line
+            ctx.beginPath();
+            points.forEach((p, idx) => {
+                if (idx === 0) ctx.moveTo(mapX(p.x), mapY(p.y));
+                else ctx.lineTo(mapX(p.x), mapY(p.y));
+            });
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Function to draw vertical line with label
+            const drawVerticalMarker = (xVal, color, label) => {
+                const px = mapX(xVal);
+                // find y on curve
+                const pOnCurve = points.find(p => Math.abs(p.x - xVal) < 0.05) || { y: maxPdf * 0.5 };
+                const py = mapY(pOnCurve.y);
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 4]);
+                ctx.beginPath();
+                ctx.moveTo(px, height - padding);
+                ctx.lineTo(px, py - 10);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw dot at top
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(px, py, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw Text Tag
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillStyle = color;
+                ctx.fillText(label, px - 15, py - 15);
+            };
+
+            // Draw markers in logical order to avoid heavy overlap text
+            drawVerticalMarker(modeX, '#10b981', 'Moda');
+            drawVerticalMarker(medianX, '#3b82f6', 'Mediana');
+            drawVerticalMarker(meanX, '#ef4444', 'Média');
+        }
+
+        skewRange.addEventListener('input', drawDistribution);
+        kurtRange.addEventListener('input', drawDistribution);
+
+        // Initial setup
+        setTimeout(resizeCanvas, 100);
+
+        // Markdown Modal functions
+        const markdownText = `# Estudo Dirigido: Assimetria e Curtose na Análise de Dados
+
+**Curso / Disciplina:** Análise Estatística de Dados  
+**Tema:** Formatos de Distribuição: Assimetria, Curtose e Posição Relativa das Medidas de Tendência Central  
+
+---
+
+## 1. O que é Assimetria e Curtose
+
+### Assimetria (Skewness)
+A **assimetria** é a medida estatística que indica o grau de desvio ou deformação da distribuição de frequências de um conjunto de dados em relação à simetria em torno da sua média. 
+
+Em palavras simples, enquanto a média nos dá o centro geométrico e o desvio padrão mede a dispersão dos dados, a assimetria revela para qual dos lados a "cauda" do gráfico está sendo esticada.
+
+### Curtose (Kurtosis)
+A **curtose** é a medida estatística que quantifica a "concentração de pico" (o quão afunilado é o topo) e o "peso das caudas" (tail-heaviness) de uma distribuição em comparação com a curva Normal. 
+
+Em palavras simples, a curtose nos diz se os eventos extremos (outliers) acontecem com mais ou menos frequência do que o esperado em uma curva gaussiana.
+
+---
+
+## 2. Como se Interpreta
+
+### Assimetria Positiva (Skewness > 0)
+- Cauda longa à direita (valores altos).
+- Concentração de dados à esquerda (valores baixos). Exemplo: Salários.
+
+### Assimetria Negativa (Skewness < 0)
+- Cauda longa à esquerda (valores baixos).
+- Concentração de dados à direita (valores altos). Exemplo: Idade de aposentadoria.
+
+### Três Tipos de Curtose
+1. **Leptocúrtica (K > 0):** Pico elevado, caudas pesadas (risco de eventos extremos).
+2. **Mesocúrtica (K = 0):** Distribuição Normal Padrão.
+3. **Platicúrtica (K < 0):** Pico achatado, caudas leves.
+
+---
+
+## 3. Para que Serve na Tomada de Decisões
+1. **Escolha de KPIs:** Em distribuições assimétricas, a Mediana (P-50) substitui a Média.
+2. **Testes Estatísticos:** Exige transformações de dados (Log/Box-Cox) ou testes não-paramétricos (Mann-Whitney).
+3. **Gestão de Risco:** Evita falências ao precificar riscos com caudas pesadas em finanças e seguros.
+
+---
+
+## 4. Onde Aparece no Mercado (2 Exemplos Reais)
+1. **Renda Populacional (Assimetria Positiva):** Média inflacionada por bilionários; Mediana revela a realidade dos 50%.
+2. **Retornos Financeiros (Curtose Leptocúrtica):** Crashes de mercado ocorrem muito mais do que a curva Normal prevê.
+
+---
+
+## 5. A Ligação com Média, Mediana e Moda
+- **Assimetria Positiva:** Moda < Mediana < Média
+- **Simétrica:** Média = Mediana = Moda
+- **Assimetria Negativa:** Média < Mediana < Moda
+
+---
+
+## 6. Divergência entre LLMs e Fontes Consultadas
+- **ChatGPT (GPT-4o):** Afirmou que Curtose da Normal é 0 (assumiu excesso de Fisher sem explicar Pearson).
+- **Claude 3.5 Sonnet:** Explicou Curtose de Pearson (3) vs Excesso de Fisher (0) e ressaltou exceções da regra de Pearson em distribuições discretas/bimodais.
+
+**Fontes:** BUSSAB & MORETTIN (2017), SciPy Stats Documentation, VON HIPPEL (2005).`;
+
+        function openMarkdownModal() {
+            document.getElementById('mdContentBody').textContent = markdownText;
+            document.getElementById('mdModal').classList.add('active');
+        }
+
+        function closeMarkdownModal() {
+            document.getElementById('mdModal').classList.remove('active');
+        }
+
+        function copyMarkdownText() {
+            navigator.clipboard.writeText(markdownText).then(() => {
+                alert('Conteúdo em Markdown copiado com sucesso para a área de transferência!');
+            });
+        }
+    </script>
+</body>
+</html>
