@@ -1,6 +1,14 @@
-Assimetria e Curtose
+ASSIMETRIA E CURTOSE
 
-A compreensão adequada do comportamento de um conjunto de dados exige análises que vão além das medidas tradicionais de tendência central, como a média e a mediana. A assimetria e a curtose são métricas estatísticas fundamentais para descrever a forma de uma distribuição: enquanto a primeira identifica a inclinação e o direcionamento da concentração dos dados, a segunda avalia o achatamento da curva e a probabilidade de ocorrência de eventos extremos nas caudas.
+Assimetria (Skewness)
+A **assimetria** é a medida estatística que indica o grau de desvio ou deformação da distribuição de frequências de um conjunto de dados em relação à simetria em torno da sua média. 
+
+Em palavras simples, enquanto a média nos dá o centro geométrico e o desvio padrão mede a dispersão dos dados, a assimetria revela para qual dos lados a "cauda" do gráfico está sendo esticada.
+
+Curtose (Kurtosis)
+A **curtose** é a medida estatística que quantifica a "concentração de pico" (o quão afunilado é o topo) e o "peso das caudas" (tail-heaviness) de uma distribuição em comparação com a curva Normal. 
+
+Em palavras simples, a curtose nos diz se os eventos extremos (outliers) acontecem com mais ou menos frequência do que o esperado em uma curva gaussiana.
 
 Primeiro Bloco: O que é
 
